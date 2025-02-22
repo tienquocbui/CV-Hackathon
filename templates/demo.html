@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Demo</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="navbar-logo">
+            <a href="/"><img src="/static/assets/logo.png" alt="Speakly Logo"></a>
+        </div>
+        <nav class="navbar-menu">
+            <a href="/">Home</a>
+            <a href="#about">About</a>
+            <a href="#features">Features</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#contact">Contact</a>
+        </nav>
+    </header>
+
+    <section class="demo-content">
+        <div class="demo-text-block">
+            <h1 class="demo-title">Demo Recording</h1>
+            <p class="demo-description">Click the button to record. We'll refine your speech into a professional CV entry.</p>
+        </div>
+
+        <div class="buttons">
+            <button id="recordBtn" class="btn record-btn">Start Recording</button>
+        </div>
+
+        <div id="result" class="transcript-box">Refined transcript will appear here...</div>
+        <div class="buttons" style="display:none;" id="actionButtons">
+            <button id="improveBtn" class="btn improve-btn">Improve with AI</button>
+            <a id="downloadBtn" class="btn download-btn" style="display:none;" href="#">Download CV (PDF)</a>
+        </div>
+    </section>
+
+    <script>
+        const recordBtn = document.getElementById('recordBtn');
+        const resultDiv = document.getElementById('result');
+        const improveBtn = document.getElementById('improveBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const actionButtons = document.getElementById('actionButtons');
+
+        let mediaRecorder, audioChunks = [], transcriptText = '';
+
+        recordBtn.addEventListener('click', async () => {
+            if (recordBtn.textContent === 'Start Recording') {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const formData = new FormData();
+                    formData.append('audio', audioBlob, 'recording.wav');
+
+                    resultDiv.innerHTML = 'Processing transcript...';
+                    actionButtons.style.display = 'none';
+
+                    try {
+                        const response = await fetch('/transcribe', { method: 'POST', body: formData });
+                        const data = await response.json();
+                        transcriptText = data.text;
+                        resultDiv.innerHTML = `<strong>Raw Transcript:</strong><br>${transcriptText || 'No text recognized.'}`;
+                        actionButtons.style.display = 'block';
+                    } catch {
+                        resultDiv.innerHTML = 'Error processing audio.';
+                    }
+                };
+
+                mediaRecorder.start();
+                recordBtn.textContent = 'Stop Recording';
+
+            } else {
+                mediaRecorder.stop();
+                recordBtn.textContent = 'Start Recording';
+            }
+        });
+
+        improveBtn.addEventListener('click', async () => {
+            resultDiv.innerHTML = 'Refining transcript...';
+
+            try {
+                const response = await fetch('/improve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: transcriptText })
+                });
+                const data = await response.json();
+                resultDiv.innerHTML = `<strong>Improved CV:</strong><br>${data.improved_text}`;
+                downloadBtn.href = data.pdf_url;
+                downloadBtn.style.display = 'inline-block';
+            } catch {
+                resultDiv.innerHTML = 'Error improving transcript.';
+            }
+        });
+    </script>
+</body>
+</html>
