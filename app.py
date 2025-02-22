@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request, jsonify, send_file, url_for
+from flask import Flask, render_template, request, jsonify, send_file, url_for, send_from_directory
 import openai, whisper, os, re
 from dotenv import load_dotenv
 from docx import Document  # Import python-docx
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from weasyprint import HTML
+
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -109,9 +111,9 @@ def improve():
     except Exception as e:
         return jsonify({'improved_text': f"Error: {str(e)}"}), 500
 
-@app.route('/download')
-def download_cv():
-    return send_file('uploads/cv_result.pdf', as_attachment=True, download_name="Your_CV.pdf")
+# @app.route('/download')
+# def download_cv():
+#     return send_file('uploads/cv_result.pdf', as_attachment=True, download_name="Your_CV.pdf")
 
 CV_QUESTIONS = {
     "Name": "What is your full name?",
@@ -137,23 +139,10 @@ def next_question():
 def parse_transcript(question_key,text):
     """Extracts CV sections from a raw transcript using regex."""
     sections = {key: "" for key in CV_QUESTIONS.keys()}  # Initialize empty structure
-
-    # # Regular expressions to extract sections dynamically
-    # patterns = {
-    #     "Name": r"(?i)(?:Name[:\-]?\s*)([^\n]*)",
-    #     "Title": r"(?i)(?:Title[:\-]?\s*)([^\n]*)",
-    #     # "Summary": r"(?i)(?:Summary[:\-]?\s*)([^\n]*)",
-    #     # "Skills": r"(?i)(?:Skills[:\-]?\s*)([^\n]*)",
-    #     # "Experience": r"(?i)(?:Experience[:\-]?\s*)([^\n]*)",
-    #     # "Education": r"(?i)(?:Education[:\-]?\s*)([^\n]*)",
-    #     # "Certifications": r"(?i)(?:Certifications[:\-]?\s*)([^\n]*)"
-    # }
-    # for key, pattern in patterns.items():
-    #     match = re.search(pattern, text)
-    #     if match:
     sections[question_key] = text;
     print(sections)
     return sections
+
 # Function to generate a DOCX file based on structured CV data
 def generate_docx(data, output_filename):
     doc = Document()
@@ -171,6 +160,93 @@ def generate_docx(data, output_filename):
     print(f"Document saved as {output_filename}")
     return output_filename
 
+# @app.route('/generate_docx', methods=['POST'])
+# def generate_docx_file():
+#     """Generate a DOCX file from structured CV data."""
+#     data = request.json.get('structured_data', {})
+
+#     if not data:
+#         return jsonify({"error": "No structured data provided."}), 400
+
+#     output_filename = "./uploads/output_cv.docx"
+#     generate_docx(data, output_filename)
+
+#     return jsonify({"message": "CV generated successfully", "file": output_filename, "html_file": docx_to_html(output_filename)})
+
+
+def docx_to_html(docx_path, output_html_path):
+    """Convert DOCX to HTML and save the result to a file."""
+    if not os.path.exists(docx_path):
+        raise FileNotFoundError(f"Input DOCX file not found: {docx_path}")
+
+    # Convert DOCX to HTML using LibreOffice headless mode
+    os.system(f"/Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to html {docx_path} --outdir ./uploads")
+
+    # # Check if the HTML file was created
+    # if not os.path.exists(output_html_path):
+    #     raise FileNotFoundError(f"Failed to generate HTML file: {output_html_path}")
+
+    return output_html_path
+
+
+
+def html_to_pdf(html_path, pdf_path):
+    # Read the HTML file
+    html = HTML(filename=html_path)
+
+    # Render HTML to PDF and save it
+    html.write_pdf(pdf_path)
+
+# Route to generate PDF from DOCX
+@app.route('/generate_pdf', methods=['POST'])
+def generate_pdf():
+    try:
+        data = request.get_json()
+        html_content = data.get('html')
+
+        if not html_content:
+            return jsonify({"error": "No HTML content provided"}), 400
+
+        # Save the HTML content to a temporary file
+        temp_html_path = "temp_document.html"
+        with open(temp_html_path, "w", encoding="utfç-8") as file:
+            file.write(html_content)
+
+        # Convert the HTML file to a PDF
+        pdf_path = "output.pdf"
+        HTML(filename=temp_html_path).write_pdf(pdf_path)
+
+        # Return the generated PDF file as a response
+        return send_file(pdf_path, as_attachment=True)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/editor')
+def editor():
+    return render_template('editor.html') 
+
+@app.route('/generate_html')
+def generate_cv():
+    docx_path = 'output_cv.docx'
+    
+    if os.path.exists(docx_path):
+        html_file = docx_to_html(docx_path)
+
+        # Read HTML and remove unwanted tags
+        with open(html_file, 'r', encoding="utf-8") as file:
+            html_content = file.read()
+
+        # Remove unwanted <html>, <body>, etc.
+        html_content = html_content.replace("<html>", "").replace("</html>", "")
+        html_content = html_content.replace("<body>", "").replace("</body>", "")
+
+        return html_content  # Send as raw HTML (not JSON)
+    else:
+        return "File not found", 404
+    
+
 @app.route('/generate_docx', methods=['POST'])
 def generate_docx_file():
     """Generate a DOCX file from structured CV data."""
@@ -179,28 +255,32 @@ def generate_docx_file():
     if not data:
         return jsonify({"error": "No structured data provided."}), 400
 
-    output_filename = "./uploads/output_cv.docx"
-    generate_docx(data, output_filename)
+    # Generate DOCX
+    output_docx_filename = "./uploads/output_cv.docx"
+    generate_docx(data, output_docx_filename)
 
-    return jsonify({"message": "CV generated successfully", "file": output_filename, "html_file": docx_to_html(output_filename)})
+    # Convert DOCX to HTML
+    output_html_filename = "./uploads/output_cv.html"
+    try:
+        html_file = docx_to_html(output_docx_filename, output_html_filename)
+    except Exception as e:
+        return jsonify({"error": f"Error converting DOCX to HTML: {str(e)}"}), 500
 
+    # Return file links for both DOCX and HTML
+    return jsonify({
+        "message": "CV generated successfully", 
+        "file": url_for('download_cv', filename='output_cv.docx'),
+        "html_file": url_for('download_html', filename='output_cv.html')
+    })
 
-def docx_to_html(docx_path):
-    output_html_path = docx_path.replace('.docx', '.html')
-    
-    # Ensure the DOCX file exists before proceeding
-    if not os.path.exists(docx_path):
-        raise FileNotFoundError(f"Input DOCX file not found: {docx_path}")
+@app.route('/download_html/<filename>')
+def download_html(filename):
+    return send_from_directory('uploads', filename)
 
-    # Convert DOCX to HTML using LibreOffice headless mode
-    os.system(f"/Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to html {docx_path}")
+@app.route('/download_cv/<filename>')
+def download_cv(filename):
+    return send_from_directory('uploads', filename)
 
-    # Check if the HTML file was created
-    # if not os.path.exists(output_html_path):
-    #     raise FileNotFoundError(f"Failed to generate HTML file: {output_html_path}")
-
-    # Return the path to the generated HTML file
-    return output_html_path
 
 if __name__ == '__main__':
     app.run(debug=True)

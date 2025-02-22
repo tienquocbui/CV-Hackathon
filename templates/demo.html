@@ -48,6 +48,11 @@
         <div class="buttons">
             <button id="generateDocxBtn" class="btn">Generate DOCX</button>
         </div>
+
+        <div class="buttons" style="display:none;" id="fileOptions">
+            <a id="downloadDocxBtn" class="btn" style="display:none;" href="#">Download CV (DOCX)</a>
+            <a id="viewHtmlBtn" class="btn" style="display:none;" href="#" target="_blank">View CV in HTML</a>
+        </div>
     </section>
 
     <script>
@@ -59,6 +64,8 @@
         const docxActions = document.getElementById('docxActions');
         const generateDocxBtn = document.getElementById('generateDocxBtn');
         const downloadDocxBtn = document.getElementById('downloadDocxBtn');
+        const viewHtmlBtn = document.getElementById('viewHtmlBtn');
+        const fileOptionsDiv = document.getElementById('fileOptions');
         let currentIndex = 0; // Declare global variable
         let mediaRecorder, audioChunks = [], transcriptText = '';
         let question_key = '';
@@ -148,8 +155,22 @@
                 });
                 console.log(response);
                 const data = await response.json();
+                // if (data.file) {
+                //     resultDiv.innerHTML = `<a href="${data.html_file}" target="_blank">Download your DOCX CV</a>`;
+                // }
                 if (data.file) {
-                    resultDiv.innerHTML = `<a href="${data.html_file}" target="_blank">Download your DOCX CV</a>`;
+                    // Show download link for DOCX file
+                    downloadDocxBtn.href = data.file;
+                    downloadDocxBtn.style.display = 'inline-block';
+
+                    // Optionally, show the HTML view link if HTML is generated
+                    if (data.html_file) {
+                        viewHtmlBtn.href = data.html_file;
+                        viewHtmlBtn.style.display = 'inline-block';
+                    }
+
+                    // Show both options
+                    fileOptionsDiv.style.display = 'block';
                 }
             } catch (err){
                 console.error('Error:', err);
