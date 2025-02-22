@@ -102,7 +102,7 @@ body, html {
 /* Content */
 .content {
     position: absolute;
-    top: 42%;
+    top: 47%;
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
@@ -115,25 +115,65 @@ body, html {
 }
 
 .text-block {
-    margin-bottom: 70px;
+    margin-top: 100px;
+    margin-bottom: 150px; /* Khoảng cách giữa text-block và buttons */
 }
 
 .text-block h1 {
     font-size: 2.8rem;
-    margin-bottom: 1px;
+    margin-bottom: 10px !important; /* Ưu tiên ghi đè */
     opacity: 0;
-    animation: fadeIn 2s ease forwards;
+    animation: fadeIn 1s ease forwards;
     animation-delay: 5.5s;
 }
 
 .text-block p {
     font-size: 1.2rem;
-    margin-top: 0px;
+    margin-top: 5px !important; /* Điều chỉnh khoảng cách với h1 */
+    opacity: 0;
+    animation: fadeIn 1s ease forwards;
+    animation-delay: 5.5s;
 }
 
 .buttons {
-    margin-top: 100px; /* Tăng khoảng cách giữa text-block và nút */
+    margin-top: 50px !important;
 }
+
+.description-below-btn p {
+    font-size: 1rem !important;
+    color: rgba(255, 255, 255, 0.7); /* Màu xám nhẹ */
+    max-width: 900px;
+    margin: 30px auto 0 auto;
+    line-height: 1.5;
+    text-align: center;
+    opacity: 0;
+    animation: fadeIn 1.5s ease forwards;
+    animation-delay: 5.5s;
+}
+
+/* Highlight cho từ khóa quan trọng */
+.description-below-btn .highlight {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.fade-on-scroll.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 
 .content h1 {
     font-size: 2.8rem;
@@ -154,6 +194,17 @@ body, html {
     opacity: 0;
     animation: fadeIn 2s ease forwards;
     animation-delay: 5.5s;
+}
+
+.fade-btn {
+    opacity: 0;
+    animation: fadeIn 2s ease forwards;
+    animation-delay: 5.5s;
+}
+
+.btn:not(.fade-btn) {
+    opacity: 1 !important;
+    animation: none !important;
 }
 
 .buttons .btn {
@@ -232,9 +283,12 @@ body, html {
     cursor: pointer;
     border: none;
     outline: none;
-    transition: background-color 0.3s ease, transform 0.2s ease;
     width: 250px;
+    opacity: 1 !important;  /* Loại bỏ hiệu ứng mờ */
+    animation: none !important; /* Xóa animation bị faded */
+    transform: none !important;
 }
+
 
 .record-btn:hover {
     background-color: #005bb5;
@@ -253,6 +307,187 @@ body, html {
     text-align: left;
     line-height: 1.5;
 }
+
+/* Scroll Sections */
+section {
+    padding: 100px 5%;
+    text-align: center;
+}
+
+/* Section Title */
+.section-title {
+    font-size: 2.8rem;
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+/* Carousel */
+.carousel {
+    position: relative;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+.slides {
+    display: flex;
+    transition: transform 0.8s ease-in-out;
+}
+
+.slide {
+    min-width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 40px;
+    background-color: #000;
+    padding: 50px;
+    border-radius: 20px;
+    flex-wrap: wrap;
+}
+
+/* Text */
+.why-text {
+    flex: 1;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: left;
+    max-width: 500px;
+}
+
+.why-text p {
+    font-size: 1.1rem;
+    line-height: 1.7;
+}
+
+.why-text .highlight {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.why-text .btn {
+    margin-top: 20px;
+    padding: 12px 25px;
+    border-radius: 25px;
+}
+
+/* Image with Hover Animation */
+.why-image {
+    flex: 1;
+    text-align: center;
+}
+
+.why-image img {
+    width: 100%;
+    max-width: 500px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.why-image img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Dots Navigation */
+.dots {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.dot {
+    height: 12px;
+    width: 12px;
+    margin: 0 5px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: inline-block;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.dot.active, .dot:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Fade-on-scroll effect */
+.fade-on-scroll {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.fade-on-scroll.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+
+/* How it Works */
+.how-it-works {
+    background-color: #fff;
+}
+
+.how-it-works h2 {
+    font-size: 2.8rem;
+    margin-bottom: 40px;
+}
+
+.steps {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.step {
+    background-color: #f9f9f9;
+    padding: 20px;
+    width: 250px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.step:hover {
+    transform: translateY(-10px);
+}
+
+.step img {
+    width: 60px;
+    margin-bottom: 15px;
+}
+
+.step h3 {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+}
+
+.step p {
+    font-size: 1rem;
+    color: rgba(0, 0, 0, 0.7);
+}
+
+/* Call to Action */
+.cta {
+    background: linear-gradient(135deg, #0071e3, #005bb5);
+    color: white;
+    padding: 80px 20px;
+    border-radius: 20px;
+}
+
+.cta h2 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+}
+
+.cta .btn {
+    padding: 14px 30px;
+    font-size: 1.2rem;
+    border-radius: 30px;
+}
+
 
 /* ABOUT PAGE */
 
@@ -404,4 +639,168 @@ body, html {
     text-align: center;
     padding: 20px 0;
     font-size: 0.9rem;
+}
+
+/* Features Page Styles */
+
+.features-section {
+    padding: 100px 5%;
+    background-color: #f5f5f7;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin-bottom: 40px;
+}
+
+.features-grid {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.feature-card {
+    background: #fff;
+    padding: 30px 20px;
+    width: 280px;
+    text-align: center;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card img {
+    width: 70px;
+    margin-bottom: 15px;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+}
+
+.feature-card h3 {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+}
+
+.feature-card p {
+    font-size: 1rem;
+    color: rgba(0, 0, 0, 0.7);
+}
+
+
+/* Pricing Page Styles */
+
+.pricing-section {
+    padding: 100px 5%;
+    background-color: #fff;
+    text-align: center;
+}
+
+.section-title {
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin-bottom: 40px;
+}
+
+.pricing-grid {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.pricing-card {
+    background-color: #f5f5f7;
+    padding: 30px 25px;
+    width: 300px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.pricing-card:hover {
+    transform: translateY(-10px);
+}
+
+.pricing-card h3 {
+    font-size: 1.6rem;
+}
+
+.pricing-card .price {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+.pricing-card ul {
+    list-style: none;
+    text-align: left;
+    margin: 20px 0;
+}
+
+.pricing-card ul li {
+    margin-bottom: 10px;
+}
+
+.pricing-card .btn {
+    display: inline-block;
+    padding: 12px 20px;
+    background-color: #0071e3;
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+}
+
+.pricing-card.highlighted {
+    background-color: #0071e3;
+    color: white;
+}
+
+
+/* Contact Page Styles */
+
+.contact-section {
+    padding: 100px 5%;
+    background-color: #f5f5f7;
+    text-align: center;
+}
+
+.section-title {
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.contact-form {
+    max-width: 500px;
+    margin: 30px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.contact-form input, .contact-form textarea {
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+}
+
+.contact-form button {
+    background-color: #0071e3;
+    color: white;
+    padding: 15px;
+    font-size: 1.1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    border: none;
+}
+
+.contact-form button:hover {
+    background-color: #005bb5;
 }
