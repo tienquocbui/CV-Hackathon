@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>About Us</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="navbar-logo">
+            <a href="/"><img src="/static/assets/logo.png" alt="Speakly Logo"></a>
+        </div>
+        <nav class="navbar-menu">
+            <a href="/">Home</a>
+            <a href="/about" class="{% if request.path == '/about' %}active{% endif %}">About</a>
+            <a href="#features">Features</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#contact">Contact</a>
+        </nav>
+
+        <div class="navbar-icons">
+            <a href="#accessibility">Accessibility</a>
+        </div>
+
+    </header>
+    <section class="video-container">
+        <video autoplay muted id="backgroundVideo" class="background-video">
+            <source src="/static/assets/Light_Overlay.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <div class="content">
+            <div class="text-block">
+                <h1>About Speakly</h1>
+                <p>Your voice deserves to be heard. We make it professional.</p>
+            </div>
+        </div>
+        
+    </section>
+
+    <section class="about-section mission">
+        <div class="about-text">
+            <h2>Our Mission</h2>
+            <p>Speakly strives to empower individuals to transform their spoken words into professional, well-structured CVs. We believe that everyone should have the opportunity to present themselves at their best, regardless of their background or writing skills.</p>
+            <h2>Our Core Values</h2>
+            <ul>
+                <li><strong>Simplicity:</strong> Making technology accessible to everyone.</li>
+                <li><strong>Accuracy:</strong> Delivering precise and reliable transcriptions.</li>
+                <li><strong>Inclusivity:</strong> Supporting multiple languages for global users.</li>
+                <li><strong>Innovation:</strong> Utilizing cutting-edge AI to enhance user experience.</li>
+            </ul>
+        </div>
+        <div class="about-image">
+            <img src="/static/assets/mission.jpg" alt="Mission Image">
+        </div>
+    </section>
+
+    <section class="about-section features" id="features">
+        <h2>Key Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <img src="/static/assets/feature1.png" alt="Convert Speech to CV">
+                <h3>Speech to Professional CV</h3>
+                <p>Speak naturally and let our AI convert your words into a refined, job-ready CV.</p>
+            </div>
+            <div class="feature-card">
+                <img src="/static/assets/feature2.png" alt="AI-Powered Multilingual Support">
+                <h3>AI-Powered Multilingual Support</h3>
+                <p>Communicate in your preferred language. Speakly ensures seamless translation and localization.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="about-section team" id="team">
+        <h2>Meet Our Team</h2>
+        <div class="team-grid">
+            <div class="team-member">
+                <img src="/static/assets/kelvin.jpg" alt="Tien Quoc (Kelvin) BUI">
+                <h4>Tien Quoc (Kelvin) BUI</h4>
+                <p>Lead Developer & Product Architect</p>
+            </div>
+            <div class="team-member">
+                <img src="/static/assets/emmy.jpg" alt="Huong Giang (Emmy) Dinh">
+                <h4>Huong Giang (Emmy) Dinh</h4>
+                <p>UI/UX Designer & Project Manager</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>&copy; 2025 Speakly. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>

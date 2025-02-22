@@ -12,11 +12,16 @@
         </div>
         <nav class="navbar-menu">
             <a href="/">Home</a>
-            <a href="#about">About</a>
+            <a href="/about" class="{% if request.path == '/about' %}active{% endif %}">About</a>
             <a href="#features">Features</a>
             <a href="#pricing">Pricing</a>
             <a href="#contact">Contact</a>
         </nav>
+
+        <div class="navbar-icons">
+            <a href="#accessibility">Accessibility</a>
+        </div>
+        
     </header>
 
     <section class="demo-content">
@@ -99,5 +104,10 @@
             }
         });
     </script>
+
+    <footer class="footer">
+        <p>&copy; 2025 Speakly. All Rights Reserved.</p>
+    </footer>
+
 </body>
 </html>
