@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View and Edit CV</title>
+</head>
+<body>
+
+    <h1>Curriculum Vitae</h1>
+    <div id="docx-content" style="border: 1px solid #ccc; padding: 10px; width: 80%; height: 400px; overflow-y: auto;"></div>
+
+    <button onclick="loadDocx()">Load CV</button>
+
+    <script>
+        // Function to load the DOCX content from Flask backend and render as HTML
+        function loadDocx() {
+            fetch('/generate')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.html) {
+                        // Insert the raw HTML content into the div
+                        document.getElementById('docx-content').innerHTML = data.html;
+                    } else {
+                        console.log('Error: No HTML content found');
+                    }
+                })
+                .catch(error => console.log('Error:', error));
+        }
+    </script>
+
+</body>
+</html>

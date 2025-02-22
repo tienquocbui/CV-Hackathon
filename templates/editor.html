@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editable Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- ✅ ADD THE CSS HERE -->
+    <style>
+        #editor {
+            min-height: 500px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            outline: none;
+            font-family: Arial, sans-serif;
+            background-color: white;
+            user-select: auto !important;
+            pointer-events: auto !important;
+            -webkit-user-modify: read-write !important;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Edit Your Document</h2>
+    <div id="editor" contenteditable="true"></div>
+    
+    <button onclick="savePDF()">Save as PDF</button>
+
+    <script>
+        // Load the generated HTML
+        fetch('/generate')
+            .then(response => response.text())
+            .then(html => {
+                let editor = document.getElementById('editor');
+                editor.innerHTML = html;
+                editor.setAttribute("contenteditable", "true");  // Ensure it's explicitly editable
+                console.log("HTML Loaded and Editable");
+            })
+            .catch(error => console.error('Error loading document:', error));
+
+        // Function to save as PDF
+        function savePDF() {
+            // Get the HTML content of the editor
+            let htmlContent = document.getElementById('editor').innerHTML;
+
+            fetch('/generate_pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ html: htmlContent })  // Send HTML data to backend
+            })
+            .then(response => response.blob())  // Receive the PDF as a file
+            .then(pdfBlob => {
+                const pdfUrl = URL.createObjectURL(pdfBlob);
+                window.open(pdfUrl, '_blank');  // Open in a new tab
+            })
+            .catch(error => console.error('Error generating PDF:', error));
+        }
+    </script>
+
+</body>
+</html>
