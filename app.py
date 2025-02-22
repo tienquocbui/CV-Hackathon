@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, send_file, url_for
 import openai, whisper, os, re
 from dotenv import load_dotenv
-from docx import Document  # Import python-docx
+from docx import Document 
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
@@ -59,6 +59,18 @@ def demo():
 @app.route('/about')
 def about():
     return render_template('about.html')
+
+@app.route('/features')
+def features():
+    return render_template('features.html')
+
+@app.route('/pricing')
+def pricing():
+    return render_template('pricing.html')
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
