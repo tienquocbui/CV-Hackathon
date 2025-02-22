@@ -56,6 +56,10 @@ def home():
 def demo():
     return render_template('demo.html')
 
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
     if 'audio' not in request.files:

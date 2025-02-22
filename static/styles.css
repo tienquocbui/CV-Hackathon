@@ -253,3 +253,155 @@ body, html {
     text-align: left;
     line-height: 1.5;
 }
+
+/* ABOUT PAGE */
+
+/* Hero Section */
+.about-hero {
+    background: url('/static/assets/about-bg.jpg') center/cover no-repeat;
+    height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    position: relative;
+}
+
+.about-hero::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    top: 0;
+    left: 0;
+}
+
+.about-content {
+    z-index: 2;
+}
+
+.about-hero h1 {
+    font-size: 3.5rem;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.about-hero p {
+    font-size: 1.4rem;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+/* Sections */
+.about-section {
+    padding: 100px 5%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f9f9f9;
+}
+
+.about-section h2 {
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+}
+
+.about-text {
+    flex: 1;
+    max-width: 600px;
+    line-height: 1.8;
+}
+
+.about-text ul {
+    list-style-type: disc;
+    margin-left: 20px;
+}
+
+.about-image img {
+    width: 100%;
+    max-width: 500px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Features */
+.features-grid {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 40px;
+}
+
+.feature-card {
+    background-color: #fff;
+    padding: 30px;
+    width: 300px;
+    text-align: center;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card img {
+    width: 80px;
+    margin-bottom: 15px;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Team */
+.team-grid {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-top: 50px;
+}
+
+.team-member {
+    background-color: #fff;
+    padding: 20px;
+    width: 250px;
+    text-align: center;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.team-member img {
+    width: 100%;
+    height: 230px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.team-member h4 {
+    margin-top: 15px;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.team-member p {
+    font-size: 1rem;
+    color: rgba(0, 0, 0, 0.7);
+}
+
+.team-member:hover {
+    transform: translateY(-10px);
+}
+
+/* Footer */
+.footer {
+    background-color: #000;
+    color: rgba(255, 255, 255, 0.6);
+    text-align: center;
+    padding: 20px 0;
+    font-size: 0.9rem;
+}
