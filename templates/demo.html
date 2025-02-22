@@ -22,7 +22,8 @@
     <section class="demo-content">
         <div class="demo-text-block">
             <h1 class="demo-title">Demo Recording</h1>
-            <p class="demo-description">Click the button to record. We'll refine your speech into a professional CV entry.</p>
+            <!-- <p class="demo-description">Click the button to record. We'll refine your speech into a professional CV entry.</p> -->
+            <p id="questionText" class="demo-description">{{ question_text }}</p> <!-- Dynamic text here -->
         </div>
 
         <div class="buttons">
@@ -30,9 +31,17 @@
         </div>
 
         <div id="result" class="transcript-box">Refined transcript will appear here...</div>
-        <div class="buttons" style="display:none;" id="actionButtons">
+        <!-- <div class="buttons" style="display:none;" id="actionButtons">
             <button id="improveBtn" class="btn improve-btn">Improve with AI</button>
             <a id="downloadBtn" class="btn download-btn" style="display:none;" href="#">Download CV (PDF)</a>
+        </div> -->
+        <p></p>
+        <!-- <div class="buttons" style="display:none;" id="docxActions">
+            <button id="generateDocxBtn" class="btn">Generate DOCX</button>
+            <a id="downloadDocxBtn" class="btn" style="display:none;" href="#">Download CV (DOCX)</a>
+        </div> -->
+        <div class="buttons">
+            <button id="generateDocxBtn" class="btn">Generate DOCX</button>
         </div>
     </section>
 
@@ -41,9 +50,28 @@
         const resultDiv = document.getElementById('result');
         const improveBtn = document.getElementById('improveBtn');
         const downloadBtn = document.getElementById('downloadBtn');
-        const actionButtons = document.getElementById('actionButtons');
-
+        // const actionButtons = document.getElementById('actionButtons');
+        const docxActions = document.getElementById('docxActions');
+        const generateDocxBtn = document.getElementById('generateDocxBtn');
+        const downloadDocxBtn = document.getElementById('downloadDocxBtn');
+        let currentIndex = 0; // Declare global variable
         let mediaRecorder, audioChunks = [], transcriptText = '';
+        let question_key = '';
+        let structuredData = {};
+        fetchNextQuestion();  // Load the first question on page load
+        function fetchNextQuestion() {
+            fetch(`/next_question?index=${currentIndex}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.question) {
+                        questionText.textContent = data.question; 
+                        question_key = data.key; // Update question text dynamically
+                    } else {
+                        questionText.textContent = "Adll questions completed.";
+                        // actionButtons.style.display = 'block';
+                    }
+                });
+        }
 
         recordBtn.addEventListener('click', async () => {
             if (recordBtn.textContent === 'Start Recording') {
@@ -52,52 +80,78 @@
                 audioChunks = [];
 
                 mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-
+                let formData = new FormData();
                 mediaRecorder.onstop = async () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    const formData = new FormData();
                     formData.append('audio', audioBlob, 'recording.wav');
-
+                    formData.append('question_key', question_key);
+                    console.log(formData);
                     resultDiv.innerHTML = 'Processing transcript...';
-                    actionButtons.style.display = 'none';
+                    // actionButtons.style.display = 'none';
 
                     try {
                         const response = await fetch('/transcribe', { method: 'POST', body: formData });
                         const data = await response.json();
                         transcriptText = data.text;
+                        console.log("bf",structuredData);
+                        structuredData[question_key] = data.structured_data[question_key]
+                        console.log("at",structuredData);
                         resultDiv.innerHTML = `<strong>Raw Transcript:</strong><br>${transcriptText || 'No text recognized.'}`;
-                        actionButtons.style.display = 'block';
+                        // actionButtons.style.display = 'block';
+                        currentIndex++;
+                        fetchNextQuestion();
                     } catch {
                         resultDiv.innerHTML = 'Error processing audio.';
                     }
                 };
-
+                console.log(transcriptText);
                 mediaRecorder.start();
                 recordBtn.textContent = 'Stop Recording';
-
+                fetchNextQuestion();  // Load the first question on page load
             } else {
                 mediaRecorder.stop();
+                fetchNextQuestion();  // Load the first question on page load
                 recordBtn.textContent = 'Start Recording';
             }
         });
 
-        improveBtn.addEventListener('click', async () => {
-            resultDiv.innerHTML = 'Refining transcript...';
+        // improveBtn.addEventListener('click', async () => {
+        //     resultDiv.innerHTML = 'Refining transcript...';
 
+        //     try {
+        //         const response = await fetch('/improve', {
+        //             method: 'POST',
+        //             headers: { 'Content-Type': 'application/json' },
+        //             body: JSON.stringify({ text: transcriptText })
+        //         });
+        //         const data = await response.json();
+        //         resultDiv.innerHTML = `<strong>Improved CV:</strong><br>${data.improved_text}`;
+        //         downloadBtn.href = data.pdf_url;
+        //         downloadBtn.style.display = 'inline-block';
+        //     } catch {
+        //         resultDiv.innerHTML = 'Error improving transcript.';
+        //     }
+        // });
+        generateDocxBtn.addEventListener('click', async () => {
+            resultDiv.innerHTML = 'Generating DOCX file...';
             try {
-                const response = await fetch('/improve', {
+                console.log("std",structuredData);
+                const response = await fetch('/generate_docx', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: transcriptText })
+                    body: JSON.stringify({ structured_data: structuredData })
                 });
+                console.log(response);
                 const data = await response.json();
-                resultDiv.innerHTML = `<strong>Improved CV:</strong><br>${data.improved_text}`;
-                downloadBtn.href = data.pdf_url;
-                downloadBtn.style.display = 'inline-block';
-            } catch {
-                resultDiv.innerHTML = 'Error improving transcript.';
+                if (data.file) {
+                    resultDiv.innerHTML = `<a href="${data.html_file}" target="_blank">Download your DOCX CV</a>`;
+                }
+            } catch (err){
+                console.error('Error:', err);
+                resultDiv.innerHTML = 'Error generating DOCX.';
             }
         });
+
     </script>
 </body>
 </html>

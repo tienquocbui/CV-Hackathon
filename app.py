@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, send_file, url_for
 import openai, whisper, os, re
 from dotenv import load_dotenv
+from docx import Document  # Import python-docx
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
@@ -15,10 +16,10 @@ def parse_cv_text(text):
     sections = {k: (v.group(1).strip() if v else "") for k, v in {
         "Name": re.search(r"Name[:\-]\s*(.*)", text, re.IGNORECASE),
         "Title": re.search(r"Title[:\-]\s*(.*)", text, re.IGNORECASE),
-        "Summary": re.search(r"Summary[:\-]\s*(.*)", text, re.IGNORECASE),
-        "Skills": re.search(r"Skills[:\-]\s*(.*)", text, re.IGNORECASE),
-        "Experience": re.search(r"Experience[:\-]\s*(.*)", text, re.IGNORECASE),
-        "Education": re.search(r"Education[:\-]\s*(.*)", text, re.IGNORECASE),
+        # "Summary": re.search(r"Summary[:\-]\s*(.*)", text, re.IGNORECASE),
+        # "Skills": re.search(r"Skills[:\-]\s*(.*)", text, re.IGNORECASE),
+        # "Experience": re.search(r"Experience[:\-]\s*(.*)", text, re.IGNORECASE),
+        # "Education": re.search(r"Education[:\-]\s*(.*)", text, re.IGNORECASE),
     }.items()}
     return sections
 
@@ -65,7 +66,14 @@ def transcribe():
 
     try:
         result = whisper_model.transcribe(audio_path)
-        return jsonify({'text': result['text']})
+        transcript_text = result['text']  
+
+        # ✅ Parse the transcript into structured JSON format
+        structured_data = parse_transcript(request.form.get('question_key'), transcript_text)
+
+        return jsonify({'text': transcript_text, 'structured_data': structured_data})
+    
+        # return jsonify({'text': result['text']})
     except Exception as e:
         return jsonify({'text': f"Error: {str(e)}"}), 500
     finally:
@@ -100,6 +108,95 @@ def improve():
 @app.route('/download')
 def download_cv():
     return send_file('uploads/cv_result.pdf', as_attachment=True, download_name="Your_CV.pdf")
+
+CV_QUESTIONS = {
+    "Name": "What is your full name?",
+    "Title": "What is your job title?",
+    # "Summary": "Provide a brief professional summary.",
+    # "Skills": "List your key skills.",
+    # "Experience": "Describe your work experience.",
+    # "Education": "Where did you study and what degree did you earn?",
+    # "Certifications": "Do you have any certifications or awards?"
+}
+
+@app.route('/next_question', methods=['GET'])
+def next_question():
+    """Get the next question to be displayed on the frontend."""
+    question_keys = list(CV_QUESTIONS.keys())
+    current_index = int(request.args.get('index', 0))
+    
+    if current_index < len(question_keys):
+        return jsonify({"key":question_keys[current_index],"question": CV_QUESTIONS[question_keys[current_index]], "index": current_index})
+    else:
+        return jsonify({"message": "All questions completed."})
+
+def parse_transcript(question_key,text):
+    """Extracts CV sections from a raw transcript using regex."""
+    sections = {key: "" for key in CV_QUESTIONS.keys()}  # Initialize empty structure
+
+    # # Regular expressions to extract sections dynamically
+    # patterns = {
+    #     "Name": r"(?i)(?:Name[:\-]?\s*)([^\n]*)",
+    #     "Title": r"(?i)(?:Title[:\-]?\s*)([^\n]*)",
+    #     # "Summary": r"(?i)(?:Summary[:\-]?\s*)([^\n]*)",
+    #     # "Skills": r"(?i)(?:Skills[:\-]?\s*)([^\n]*)",
+    #     # "Experience": r"(?i)(?:Experience[:\-]?\s*)([^\n]*)",
+    #     # "Education": r"(?i)(?:Education[:\-]?\s*)([^\n]*)",
+    #     # "Certifications": r"(?i)(?:Certifications[:\-]?\s*)([^\n]*)"
+    # }
+    # for key, pattern in patterns.items():
+    #     match = re.search(pattern, text)
+    #     if match:
+    sections[question_key] = text;
+    print(sections)
+    return sections
+# Function to generate a DOCX file based on structured CV data
+def generate_docx(data, output_filename):
+    doc = Document()
+    doc.add_heading('Curriculum Vitae', 0)
+
+    for section, content in data.items():
+        doc.add_heading(section, level=1)
+        if isinstance(content, list):
+            for item in content:
+                doc.add_paragraph(f"- {item}")
+        else:
+            doc.add_paragraph(content)
+
+    doc.save(output_filename)
+    print(f"Document saved as {output_filename}")
+    return output_filename
+
+@app.route('/generate_docx', methods=['POST'])
+def generate_docx_file():
+    """Generate a DOCX file from structured CV data."""
+    data = request.json.get('structured_data', {})
+
+    if not data:
+        return jsonify({"error": "No structured data provided."}), 400
+
+    output_filename = "./uploads/output_cv.docx"
+    generate_docx(data, output_filename)
+
+    return jsonify({"message": "CV generated successfully", "file": output_filename, "html_file": docx_to_html(output_filename)})
+
+
+def docx_to_html(docx_path):
+    output_html_path = docx_path.replace('.docx', '.html')
+    
+    # Ensure the DOCX file exists before proceeding
+    if not os.path.exists(docx_path):
+        raise FileNotFoundError(f"Input DOCX file not found: {docx_path}")
+
+    # Convert DOCX to HTML using LibreOffice headless mode
+    os.system(f"/Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to html {docx_path}")
+
+    # Check if the HTML file was created
+    # if not os.path.exists(output_html_path):
+    #     raise FileNotFoundError(f"Failed to generate HTML file: {output_html_path}")
+
+    # Return the path to the generated HTML file
+    return output_html_path
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -69,7 +69,7 @@ def generate_pdf():
 
         # Save the HTML content to a temporary file
         temp_html_path = "temp_document.html"
-        with open(temp_html_path, "w", encoding="utf-8") as file:
+        with open(temp_html_path, "w", encoding="utfç-8") as file:
             file.write(html_content)
 
         # Convert the HTML file to a PDF
