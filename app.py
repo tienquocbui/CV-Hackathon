@@ -130,11 +130,11 @@ def improve():
 CV_QUESTIONS = {
     "Name": "What is your full name?",
     "Title": "What is your job title?",
-    # "Summary": "Provide a brief professional summary.",
-    # "Skills": "List your key skills.",
-    # "Experience": "Describe your work experience.",
-    # "Education": "Where did you study and what degree did you earn?",
-    # "Certifications": "Do you have any certifications or awards?"
+    "Summary": "Provide a brief professional summary.",
+    "Skills": "List your key skills.",
+    "Experience": "Describe your work experience.",
+    "Education": "Where did you study and what degree did you earn?",
+    "Certifications": "Do you have any certifications or awards?"
 }
 
 @app.route('/next_question', methods=['GET'])
@@ -156,6 +156,7 @@ def parse_transcript(question_key,text):
     return sections
 
 # Function to generate a DOCX file based on structured CV data
+# todo
 def generate_docx(data, output_filename):
     doc = Document()
     doc.add_heading('Curriculum Vitae', 0)
