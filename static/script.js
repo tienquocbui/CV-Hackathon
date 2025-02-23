@@ -1,43 +1,58 @@
 document.addEventListener("DOMContentLoaded", () => {
     const recordBtn = document.getElementById('recordBtn');
-    const retryBtn = document.getElementById('retryBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const resultDiv = document.getElementById('result');
     const questionText = document.getElementById('questionText');
+    const summaryContent = document.getElementById('summaryContent');
     const generateDocxBtn = document.getElementById('generateDocxBtn');
     const fileOptionsDiv = document.getElementById('fileOptions');
-
+    const resultDiv = document.getElementById('result');
+    
     let currentIndex = 0;
-    let mediaRecorder, audioChunks = [], structuredData = {}, question_key = '';
-
+    let mediaRecorder, audioChunks = [];
+    let structuredData = {};
     // Function to read text aloud
     function readAloud(text) {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';  // You can change the language if needed (e.g., 'en-GB' for British English)
         window.speechSynthesis.speak(utterance);
     }
-    // readAloud("What is your full name?");
-
-    // 👉 Load câu hỏi tiếp theo
+    // 🎯 Fetch the next question
     function fetchNextQuestion() {
         fetch(`/next_question?index=${currentIndex}`)
             .then(response => response.json())
             .then(data => {
                 if (data.question) {
-                    questionText.textContent = data.question;
-                    question_key = data.key;
+                    questionText.textContent = `${currentIndex + 1}. ${data.question}`;
+                    recordBtn.style.display = 'inline-flex';
                     readAloud(data.question);
+
                 } else {
-                    questionText.textContent = "✅ All questions completed.";
-                    nextBtn.style.display = 'none';
+                    questionText.innerHTML = `<img src="/static/assets/check.svg" alt="Check" style="width:20px; vertical-align:middle; margin-right:8px;">All questions completed.`;
                     recordBtn.style.display = 'none';
                 }
             });
     }
 
-    // 🎙️ Bắt đầu & dừng ghi âm
+    function addToSummary(question, transcript) {
+        const item = document.createElement('div');
+        item.classList.add('summary-item');
+        item.innerHTML = `
+        <p class="summary-question">${question}</p>
+        <p class="summary-answer">${transcript}</p>
+      `;
+
+        summaryContent.appendChild(item);
+        structuredData[question] = transcript;
+    }
+
+    // 🎙️ Handle Recording
     recordBtn.addEventListener('click', async () => {
-        if (recordBtn.textContent === 'Start Recording') {
+        if (recordBtn.classList.contains('recording')) {
+
+            mediaRecorder.stop();
+            recordBtn.classList.remove('recording');
+            recordBtn.innerHTML = `<img src="/static/assets/play_circle.svg" class="record-icon" /> Start Recording`;
+        } else {
+
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
@@ -47,48 +62,31 @@ document.addEventListener("DOMContentLoaded", () => {
             mediaRecorder.onstop = async () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                 const formData = new FormData();
-                formData.append('audio', audioBlob, 'recording.wav');
-                formData.append('question_key', question_key);
-
-                resultDiv.innerHTML = '⏳ Processing transcript...';
+                formData.append('audio', audioBlob);
+                formData.append('language', 'en');
+                formData.append('question_key', questionText.textContent);
 
                 try {
                     const response = await fetch('/transcribe', { method: 'POST', body: formData });
                     const data = await response.json();
-                    structuredData[question_key] = data.structured_data[question_key];
-                    resultDiv.innerHTML = `<strong>📝 Transcript:</strong><br>${data.text}`;
-                    retryBtn.style.display = 'inline-block';
-                    nextBtn.style.display = 'inline-block';
-                } catch {
-                    resultDiv.innerHTML = '❌ Error processing audio.';
+
+                    if (data.text) {
+                        addToSummary(questionText.textContent, data.text);
+                        currentIndex++;
+                        fetchNextQuestion();
+                    } else {
+                        alert('Error: Could not transcribe.');
+                    }
+                } catch (err) {
+                    console.error('Transcription error:', err);
                 }
             };
 
             mediaRecorder.start();
-            recordBtn.textContent = 'Stop Recording';
-        } else {
-            mediaRecorder.stop();
-            recordBtn.textContent = 'Start Recording';
+            recordBtn.classList.add('recording');
+            recordBtn.innerHTML = `<img src="/static/assets/stop_circle.svg" class="record-icon" /> Stop Recording`;
         }
     });
-
-    // 🔄 Ghi lại câu hỏi
-    retryBtn.addEventListener('click', () => {
-        resultDiv.innerHTML = '📝 Ready to record again...';
-        retryBtn.style.display = 'none';
-        nextBtn.style.display = 'none';
-    });
-
-    // ⏭️ Chuyển sang câu tiếp theo
-    nextBtn.addEventListener('click', () => {
-        currentIndex++;
-        fetchNextQuestion();
-        resultDiv.innerHTML = '🎤 Ready to record...';
-        retryBtn.style.display = 'none';
-        nextBtn.style.display = 'none';
-    });
-
-    // 📄 Tạo file DOCX
     generateDocxBtn.addEventListener('click', async () => {
         resultDiv.innerHTML = '🔄 Generating DOCX...';
         try {
@@ -117,6 +115,5 @@ document.addEventListener("DOMContentLoaded", () => {
             resultDiv.innerHTML = '❌ Error generating DOCX.';
         }
     });
-
-    fetchNextQuestion(); // Load câu hỏi đầu tiên khi trang được tải
+    fetchNextQuestion();
 });

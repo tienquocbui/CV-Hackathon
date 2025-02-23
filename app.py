@@ -9,6 +9,8 @@ from docx.shared import Pt, RGBColor
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
+from pydub import AudioSegment
+from werkzeug.utils import secure_filename
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -51,7 +53,6 @@ def generate_cv_pdf(data):
     return output_path
 
 def generate_docx(data, output_filename):
-    """Generate a DOCX CV."""
     doc = Document()
     doc.add_heading('Curriculum Vitae', 0)
     for section, content in data.items():
@@ -222,35 +223,82 @@ CV_QUESTIONS = {
     "Education": "Where did you study and what degree did you earn?",
     "Certifications": "Do you have any certifications or awards?"
 }
-
-# @app.route('/next_question', methods=['GET'])
-# def next_question():
-#     """🔎 Get the next CV question."""
-#     index = int(request.args.get('index', 0))
-#     keys = list(CV_QUESTIONS.keys())
-#     return jsonify({"key": keys[index], "question": CV_QUESTIONS[keys[index]]}) if index < len(keys) else jsonify({"message": "All questions completed."})
+client = openai.Client(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
-    """🎙️ Handle audio transcription with Whisper model."""
-    if 'audio' not in request.files:
-        return jsonify({'text': 'No file uploaded'}), 400
+    # """🎙️ Handle audio transcription with Whisper model."""
+    # if 'audio' not in request.files:
+    #     return jsonify({'text': 'No file uploaded'}), 400
 
-    audio_path = os.path.join('uploads', 'temp.wav')
-    request.files['audio'].save(audio_path)
+    # audio_path = os.path.join('uploads', 'temp.wav')
+    # request.files['audio'].save(audio_path)
+
+    # try:
+    #     result = whisper_model.transcribe(audio_path)
+    #     transcript_text = result['text']
+    #     structured_data = {request.form.get('question_key'): transcript_text}
+    #     return jsonify({'text': transcript_text, 'structured_data': structured_data})
+    # except Exception as e:
+    #     return jsonify({'text': f"Error: {str(e)}"}), 500
+    # finally:
+    #     os.remove(audio_path)
+    if 'audio' not in request.files:
+        return jsonify({'error': 'No audio file provided.'}), 400
+
+    audio_file = request.files['audio']
+    filename = secure_filename(audio_file.filename)
+    raw_audio_path = os.path.join('uploads', filename)
+    converted_audio_path = os.path.join('uploads', 'converted.wav')
+
+    audio_file.save(raw_audio_path)
+    print(f"✅ Audio saved to {raw_audio_path}")
 
     try:
-        result = whisper_model.transcribe(audio_path)
-        transcript_text = result['text']
-        structured_data = {request.form.get('question_key'): transcript_text}
-        return jsonify({'text': transcript_text, 'structured_data': structured_data})
+        audio = AudioSegment.from_file(raw_audio_path)
+        audio.export(converted_audio_path, format="wav", parameters=["-ac", "1", "-ar", "16000"])
+        print("🔄 Audio converted to WAV (16kHz, mono)")
+
+        with open(converted_audio_path, 'rb') as f:
+            response = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=f,
+                response_format="text",
+                language=request.form.get('language', 'en')
+            )
+
+        transcript = response
+        print(f"✅ Transcript: {transcript}")
+        structured_data = {request.form.get('question_key'): transcript}
+        return jsonify({'text': transcript, 'structured_data': structured_data})
     except Exception as e:
-        return jsonify({'text': f"Error: {str(e)}"}), 500
+        print(f"🔥 Lỗi khi transcribe: {e}")
+        return jsonify({'error': str(e)}), 500
     finally:
-        os.remove(audio_path)
+        os.remove(raw_audio_path)
+        os.remove(converted_audio_path)
+        print("🗑️ Đã xoá file tạm.")
 
+CV_QUESTIONS = {
+    "Name": "What is your full name?",
+    "Title": "What is your job title?",
+    "Summary": "Provide a brief professional summary.",
+    "Skills": "List your key skills.",
+    "Experience": "Describe your work experience.",
+    "Education": "Where did you study and what degree did you earn?",
+    "Certifications": "Do you have any certifications or awards?"
+}
 
-
+@app.route('/next_question', methods=['GET'])
+def next_question():
+    """Get the next question to be displayed on the frontend."""
+    question_keys = list(CV_QUESTIONS.keys())
+    current_index = int(request.args.get('index', 0))
+    
+    if current_index < len(question_keys):
+        return jsonify({"key":question_keys[current_index],"question": CV_QUESTIONS[question_keys[current_index]], "index": current_index})
+    else:
+        return jsonify({"message": "All questions completed."})
 @app.route('/improve', methods=['POST'])
 def improve():
     """💎 Improve CV content with OpenAI."""
@@ -275,30 +323,15 @@ def improve():
     except Exception as e:
         return jsonify({'improved_text': f"Error: {str(e)}"}), 500
 
+# -------------------- 🚀 RUN APP --------------------
+        return jsonify({'improved_text': improved_text, 'pdf_url': url_for('download_cv_result')})
+    except Exception as e:
+        return jsonify({'improved_text': f"Error: {str(e)}"}), 500
+
 # @app.route('/download')
 # def download_cv():
 #     return send_file('uploads/cv_result.pdf', as_attachment=True, download_name="Your_CV.pdf")
 
-CV_QUESTIONS = {
-    "Name": "What is your full name?",
-    "Title": "What is your job title?",
-    "Summary": "Provide a brief professional summary.",
-    "Skills": "List your key skills.",
-    "Experience": "Describe your work experience.",
-    "Education": "Where did you study and what degree did you earn?",
-    "Certifications": "Do you have any certifications or awards?"
-}
-
-@app.route('/next_question', methods=['GET'])
-def next_question():
-    """Get the next question to be displayed on the frontend."""
-    question_keys = list(CV_QUESTIONS.keys())
-    current_index = int(request.args.get('index', 0))
-    
-    if current_index < len(question_keys):
-        return jsonify({"key":question_keys[current_index],"question": CV_QUESTIONS[question_keys[current_index]], "index": current_index})
-    else:
-        return jsonify({"message": "All questions completed."})
 
 def parse_transcript(question_key,text):
     """Extracts CV sections from a raw transcript using regex."""
@@ -454,4 +487,6 @@ def download_cv(filename):
 
 if __name__ == '__main__':
     app.run(debug=True)
+    app = Flask(__name__, static_folder='static')
+
     

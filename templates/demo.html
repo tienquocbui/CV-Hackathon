@@ -1,181 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Demo</title>
-    <link rel="stylesheet" href="/static/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Speakly - Demo</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 </head>
+
 <body>
-    <header class="navbar">
-        <div class="navbar-logo">
-            <a href="/"><img src="/static/assets/logo.png" alt="Speakly Logo"></a>
-        </div>
-        <nav class="navbar-menu">
-            <a href="/">Home</a>
-            <a href="/about" class="{% if request.path == '/about' %}active{% endif %}">About</a>
-            <a href="/features">Features</a>
-            <a href="/pricing">Pricing</a>
-            <a href="/contact">Contact</a>
-        </nav>
-        <div class="navbar-icons">
-            <a href="#accessibility">Accessibility</a>
-        </div>
-    </header>
-
-    <section class="demo-content">
-        <div class="demo-left">
-            <h1 class="demo-title">Demo Recording</h1>
-            <p id="questionText" class="demo-description">{{ question_text }}</p>
-            <div class="buttons">
-                <button id="recordBtn" class="btn record-btn">Start Recording</button>
-                <button id="retryBtn" class="btn retry-btn" style="display:none;">Record Again</button>
-                <button id="nextBtn" class="btn next-btn" style="display:none;">Next Question</button>
-            </div>
-            <div id="result" class="transcript-box">Your transcript will appear here...</div>
-        </div>
-
-        <div class="demo-right">
-            <img src="/static/assets/demo-illustration.png" alt="Illustration" class="demo-image">
-        </div>
-
-        <div class="buttons" style="display:none;" id="fileOptions">
-            <a id="downloadDocxBtn" class="btn" style="display:none;" href="#">Download CV (DOCX)</a>
-            <a id="viewHtmlBtn" class="btn" style="display:none;" href="#" target="_blank">View CV in HTML</a>
-        </div>
-    </section>
-<!-- 
-    <script>
-        const recordBtn = document.getElementById('recordBtn');
-        const resultDiv = document.getElementById('result');
-        const improveBtn = document.getElementById('improveBtn');
-        const downloadBtn = document.getElementById('downloadBtn');
-        // const actionButtons = document.getElementById('actionButtons');
-        const docxActions = document.getElementById('docxActions');
-        const generateDocxBtn = document.getElementById('generateDocxBtn');
-        const downloadDocxBtn = document.getElementById('downloadDocxBtn');
-        const viewHtmlBtn = document.getElementById('viewHtmlBtn');
-        const fileOptionsDiv = document.getElementById('fileOptions');
-        let currentIndex = 0; // Declare global variable
-        let mediaRecorder, audioChunks = [], transcriptText = '';
-        let question_key = '';
-        let structuredData = {};
-        fetchNextQuestion();  // Load the first question on page load
-        function fetchNextQuestion() {
-            fetch(`/next_question?index=${currentIndex}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.question) {
-                        questionText.textContent = data.question; 
-                        question_key = data.key; // Update question text dynamically
-                    } else {
-                        questionText.textContent = "Adll questions completed.";
-                        // actionButtons.style.display = 'block';
-                    }
-                });
-        }
-
-        recordBtn.addEventListener('click', async () => {
-            if (recordBtn.textContent === 'Start Recording') {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-
-                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-                let formData = new FormData();
-                mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    formData.append('audio', audioBlob, 'recording.wav');
-                    formData.append('question_key', question_key);
-                    console.log(formData);
-                    resultDiv.innerHTML = 'Processing transcript...';
-                    // actionButtons.style.display = 'none';
-
-                    try {
-                        const response = await fetch('/transcribe', { method: 'POST', body: formData });
-                        const data = await response.json();
-                        transcriptText = data.text;
-                        console.log("bf",structuredData);
-                        structuredData[question_key] = data.structured_data[question_key]
-                        console.log("at",structuredData);
-                        resultDiv.innerHTML = `<strong>Raw Transcript:</strong><br>${transcriptText || 'No text recognized.'}`;
-                        // actionButtons.style.display = 'block';
-                        currentIndex++;
-                        fetchNextQuestion();
-                    } catch {
-                        resultDiv.innerHTML = 'Error processing audio.';
-                    }
-                };
-                console.log(transcriptText);
-                mediaRecorder.start();
-                recordBtn.textContent = 'Stop Recording';
-                fetchNextQuestion();  // Load the first question on page load
-            } else {
-                mediaRecorder.stop();
-                fetchNextQuestion();  // Load the first question on page load
-                recordBtn.textContent = 'Start Recording';
-            }
-        });
-
-        // improveBtn.addEventListener('click', async () => {
-        //     resultDiv.innerHTML = 'Refining transcript...';
-
-        //     try {
-        //         const response = await fetch('/improve', {
-        //             method: 'POST',
-        //             headers: { 'Content-Type': 'application/json' },
-        //             body: JSON.stringify({ text: transcriptText })
-        //         });
-        //         const data = await response.json();
-        //         resultDiv.innerHTML = `<strong>Improved CV:</strong><br>${data.improved_text}`;
-        //         downloadBtn.href = data.pdf_url;
-        //         downloadBtn.style.display = 'inline-block';
-        //     } catch {
-        //         resultDiv.innerHTML = 'Error improving transcript.';
-        //     }
-        // });
-        generateDocxBtn.addEventListener('click', async () => {
-            resultDiv.innerHTML = 'Generating DOCX file...';
-            try {
-                console.log("std",structuredData);
-                const response = await fetch('/generate_docx', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ structured_data: structuredData })
-                });
-                console.log(response);
-                const data = await response.json();
-                // if (data.file) {
-                //     resultDiv.innerHTML = `<a href="${data.html_file}" target="_blank">Download your DOCX CV</a>`;
-                // }
-                if (data.file) {
-                    // Show download link for DOCX file
-                    downloadDocxBtn.href = data.file;
-                    downloadDocxBtn.style.display = 'inline-block';
-
-                    // Optionally, show the HTML view link if HTML is generated
-                    if (data.html_file) {
-                        viewHtmlBtn.href = data.html_file;
-                        viewHtmlBtn.style.display = 'inline-block';
-                    }
-
-                    // Show both options
-                    fileOptionsDiv.style.display = 'block';
-                }
-            } catch (err){
-                console.error('Error:', err);
-                resultDiv.innerHTML = 'Error generating DOCX.';
-            }
-        });
-
-    </script> -->
-    <div class="buttons">
-        <button id="generateDocxBtn" class="btn generate-btn">Generate DOCX</button>
+  <header class="navbar">
+    <div class="navbar-logo">
+      <a href="/"><img src="/static/assets/logo.png" alt="Speakly Logo" /></a>
     </div>
+    <nav class="navbar-menu">
+      <a href="/" class="{% if request.path == '/' %}active{% endif %}">Home</a>
+      <a href="/about" class="{% if request.path == '/about' %}active{% endif %}">About</a>
+      <a href="/features" class="{% if request.path == '/features' %}active{% endif %}">Features</a>
+      <a href="/pricing" class="{% if request.path == '/pricing' %}active{% endif %}">Pricing</a>
+      <a href="/contact" class="{% if request.path == '/contact' %}active{% endif %}">Contact</a>
+    </nav>
+    <div class="navbar-icons">
+      <a href="#accessibility">Accessibility</a>
+    </div>
+  </header>
 
-    <script src="/static/script.js"></script>
+  <div class="main-content">
+    <div class="container demo-container">
+      <!-- 🎤 Left Section: Recording -->
+      <div class="section demo-section">
+        <h2>Demo Recording</h2>
+        <p id="questionText" class="question">Loading question...</p>
+        <button id="recordBtn" class="record-button">
+          <img src="/static/assets/play_circle.svg" alt="Play Icon" class="record-icon" />
+          Start Recording
+        </button>
+      </div>
+      <div class="buttons">
+        <button id="generateDocxBtn" class="btn generate-btn">Generate DOCX</button>
+      </div>
+      <div id="result"></div>
+      <div class="buttons" style="display:none;" id="fileOptions">
+        <a id="downloadDocxBtn" class="btn" style="display:none;" href="#">Download CV (DOCX)</a>
+        <a id="viewHtmlBtn" class="btn" style="display:none;" href="#" target="_blank">View CV in HTML</a>
+      </div>
+      <div class="divider"></div>
 
-    <footer class="footer">
-        <p>&copy; 2025 Speakly. All Rights Reserved.</p>
-    </footer>
+      <!-- 📝 Right Section: Summary -->
+      <div class="section summary-section">
+        <div class="summary-header">
+          <h2>Summary</h2>
+          <a href="#" class="header-button">✨ Better with AI</a>
+        </div>
+        <div id="summaryContent" class="summary-content">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>&copy; 2025 Speakly. All Rights Reserved.</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
+
 </html>
