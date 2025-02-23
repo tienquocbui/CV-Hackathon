@@ -10,6 +10,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentIndex = 0;
     let mediaRecorder, audioChunks = [], structuredData = {}, question_key = '';
 
+    // Function to read text aloud
+    function readAloud(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';  // You can change the language if needed (e.g., 'en-GB' for British English)
+        window.speechSynthesis.speak(utterance);
+    }
+    
     // 👉 Load câu hỏi tiếp theo
     function fetchNextQuestion() {
         fetch(`/next_question?index=${currentIndex}`)
@@ -18,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.question) {
                     questionText.textContent = data.question;
                     question_key = data.key;
+                    readAloud(data.question);
                 } else {
                     questionText.textContent = "✅ All questions completed.";
                     nextBtn.style.display = 'none';
