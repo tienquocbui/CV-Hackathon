@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editable Document</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <!-- ✅ ADD THE CSS HERE -->
+    <title>Edit Your Document</title>
     <style>
         #editor {
             min-height: 500px;
@@ -29,17 +26,17 @@
 <body>
 
     <h2>Edit Your Document</h2>
-    <div id="editor" contenteditable="true"></div>
+    <div id="editor" contenteditable="true"></div> <!-- Editable area -->
     
     <button onclick="savePDF()">Save as PDF</button>
 
     <script>
-        // Load the generated HTML
-        fetch('/generate_html')
+        // Load the generated HTML from the server and make it editable
+        fetch('/uploads/output_cv.html')
             .then(response => response.text())
             .then(html => {
                 let editor = document.getElementById('editor');
-                editor.innerHTML = html;
+                editor.innerHTML = html; // Insert HTML content into the editor
                 editor.setAttribute("contenteditable", "true");  // Ensure it's explicitly editable
                 console.log("HTML Loaded and Editable");
             })

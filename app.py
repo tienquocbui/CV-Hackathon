@@ -5,7 +5,8 @@ from docx import Document
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from weasyprint import HTML
-
+from docx.shared import Pt, RGBColor
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -60,7 +61,7 @@ def generate_docx(data, output_filename):
 def docx_to_html(docx_path):
     """Convert DOCX to HTML using LibreOffice."""
     output_html_path = docx_path.replace('.docx', '.html')
-    os.system(f"/Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to html {docx_path}")
+    os.system(f"/Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to html {docx_path}  --outdir uploads")
     return output_html_path
 
 def parse_cv_text(text):
@@ -105,10 +106,69 @@ def generate_docx(data, output_filename):
     doc.save(output_filename)
     return output_filename
 
+def generate_enhanced_docx(data, output_filename):
+    doc = Document()
+
+    # Get the name from the data dictionary and use it as the title
+    name = data.get("Name", "Curriculum Vitae")  # Default to "Curriculum Vitae" if Name is not found
+
+    # Add a title heading with large font size
+    title = doc.add_heading(level=0)
+    run = title.add_run(name)  # Use the Name field as the title
+    run.font.size = Pt(30)
+    run.font.bold = True
+    run.font.color.rgb = RGBColor(0, 102, 204)  # Blue color
+    title.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # Centered title
+    doc.add_paragraph()  # Add a blank line
+
+    # Iterate through the sections and format them nicely
+    for section, content in data.items():
+        if section == "Name":
+            continue  # Skip the Name section as it's already used as the title
+
+        # Add section header (with a different style)
+        heading = doc.add_heading(level=1)
+        heading_run = heading.add_run(section)
+        heading_run.font.size = Pt(16)
+        heading_run.bold = True
+        heading_run.font.color.rgb = RGBColor(0, 51, 102)  # Dark blue for headings
+
+        doc.add_paragraph()  # Add space after heading
+        
+        # Handle content based on its type
+        if isinstance(content, list):
+            # If the section content is a list, format it as bullet points
+            for item in content:
+                doc.add_paragraph(f"- {item}", style='List Bullet')
+        
+        elif isinstance(content, dict):
+            # If content is a dictionary, create a table dynamically
+            table = doc.add_table(rows=1, cols=len(content))
+            table.style = 'Table Grid'
+            row = table.rows[0].cells
+            for i, key in enumerate(content.keys()):
+                row[i].text = key  # Set the headers (keys)
+            row = table.add_row().cells
+            for i, value in enumerate(content.values()):
+                row[i].text = value  # Set the values
+            doc.add_paragraph()  # Add space after table
+
+        elif isinstance(content, str):
+            # If content is a string (text), add it as a normal paragraph
+            paragraph = doc.add_paragraph(content)
+            paragraph.style.font.size = Pt(12)
+        
+        doc.add_paragraph()  # Add space between sections
+
+    # Save the document
+    doc.save(output_filename)
+    print(f"Document saved as {output_filename}")
+    return output_filename
+
 def docx_to_html(docx_path):
     """Convert DOCX to HTML using LibreOffice."""
     output_html_path = docx_path.replace('.docx', '.html')
-    os.system(f"/Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to html {docx_path}")
+    os.system(f"/Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to html {docx_path}  --outdir uploads")
     return output_html_path
 
 @app.route('/')
@@ -129,9 +189,9 @@ def pricing(): return render_template('pricing.html')
 @app.route('/contact')
 def contact(): return render_template('contact.html')
 
-@app.route('/download')
-def download_cv():
-    return send_file('uploads/cv_result.pdf', as_attachment=True, download_name="Your_CV.pdf")
+# @app.route('/download')
+# def download_cv():
+#     return send_file('uploads/cv_result.pdf', as_attachment=True, download_name="Your_CV.pdf")
 
 CV_QUESTIONS = {
     "Name": "What is your full name?",
@@ -143,12 +203,12 @@ CV_QUESTIONS = {
     "Certifications": "Do you have any certifications or awards?"
 }
 
-@app.route('/next_question', methods=['GET'])
-def next_question():
-    """🔎 Get the next CV question."""
-    index = int(request.args.get('index', 0))
-    keys = list(CV_QUESTIONS.keys())
-    return jsonify({"key": keys[index], "question": CV_QUESTIONS[keys[index]]}) if index < len(keys) else jsonify({"message": "All questions completed."})
+# @app.route('/next_question', methods=['GET'])
+# def next_question():
+#     """🔎 Get the next CV question."""
+#     index = int(request.args.get('index', 0))
+#     keys = list(CV_QUESTIONS.keys())
+#     return jsonify({"key": keys[index], "question": CV_QUESTIONS[keys[index]]}) if index < len(keys) else jsonify({"message": "All questions completed."})
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
@@ -169,20 +229,7 @@ def transcribe():
     finally:
         os.remove(audio_path)
 
-@app.route('/generate_docx', methods=['POST'])
-def generate_docx_file():
-    """📄 Generate DOCX from structured data."""
-    data = request.json.get('structured_data', {})
-    if not data:
-        return jsonify({"error": "No structured data provided."}), 400
 
-    output_filename = "./uploads/output_cv.docx"
-    generate_docx(data, output_filename)
-    return jsonify({
-        "message": "CV generated successfully",
-        "file": output_filename,
-        "html_file": docx_to_html(output_filename)
-    })
 
 @app.route('/improve', methods=['POST'])
 def improve():
@@ -272,19 +319,19 @@ def generate_docx(data, output_filename):
 #     return jsonify({"message": "CV generated successfully", "file": output_filename, "html_file": docx_to_html(output_filename)})
 
 
-def docx_to_html(docx_path, output_html_path):
-    """Convert DOCX to HTML and save the result to a file."""
-    if not os.path.exists(docx_path):
-        raise FileNotFoundError(f"Input DOCX file not found: {docx_path}")
+# def docx_to_html(docx_path, output_html_path):
+#     """Convert DOCX to HTML and save the result to a file."""
+#     if not os.path.exists(docx_path):
+#         raise FileNotFoundError(f"Input DOCX file not found: {docx_path}")
 
-    # Convert DOCX to HTML using LibreOffice headless mode
-    os.system(f"/Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to html {docx_path} --outdir ./uploads")
+#     # Convert DOCX to HTML using LibreOffice headless mode
+#     os.system(f"/Applications/LibreOffice.app/Contents/MacOS/soffice --headless --convert-to html {docx_path} --outdir ./uploads")
 
-    # # Check if the HTML file was created
-    # if not os.path.exists(output_html_path):
-    #     raise FileNotFoundError(f"Failed to generate HTML file: {output_html_path}")
+#     # # Check if the HTML file was created
+#     # if not os.path.exists(output_html_path):
+#     #     raise FileNotFoundError(f"Failed to generate HTML file: {output_html_path}")
 
-    return output_html_path
+#     return output_html_path
 
 
 
@@ -355,12 +402,12 @@ def generate_docx_file():
 
     # Generate DOCX
     output_docx_filename = "./uploads/output_cv.docx"
-    generate_docx(data, output_docx_filename)
+    generate_enhanced_docx(data, output_docx_filename)
 
     # Convert DOCX to HTML
     output_html_filename = "./uploads/output_cv.html"
     try:
-        html_file = docx_to_html(output_docx_filename, output_html_filename)
+        html_file = docx_to_html(output_docx_filename)
     except Exception as e:
         return jsonify({"error": f"Error converting DOCX to HTML: {str(e)}"}), 500
 
@@ -368,11 +415,15 @@ def generate_docx_file():
     return jsonify({
         "message": "CV generated successfully", 
         "file": url_for('download_cv', filename='output_cv.docx'),
-        "html_file": url_for('download_html', filename='output_cv.html')
+        "html_file": url_for('editor') 
     })
 
-@app.route('/download_html/<filename>')
-def download_html(filename):
+# @app.route('/download_html/<filename>')
+# def download_html(filename):
+#     return send_from_directory('uploads', filename)
+
+@app.route('/uploads/<filename>')
+def upload_file(filename):
     return send_from_directory('uploads', filename)
 
 @app.route('/download_cv/<filename>')
@@ -383,3 +434,4 @@ def download_cv(filename):
 
 if __name__ == '__main__':
     app.run(debug=True)
+    

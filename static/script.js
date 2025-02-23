@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const resultDiv = document.getElementById('result');
     const questionText = document.getElementById('questionText');
     const generateDocxBtn = document.getElementById('generateDocxBtn');
+    const fileOptionsDiv = document.getElementById('fileOptions');
 
     let currentIndex = 0;
     let mediaRecorder, audioChunks = [], structuredData = {}, question_key = '';
@@ -89,7 +90,18 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             const data = await response.json();
             if (data.file) {
-                resultDiv.innerHTML = `<a href="${data.html_file}" target="_blank" class="btn download-link">⬇️ Download your DOCX CV</a>`;
+                // Show download link for DOCX file
+                downloadDocxBtn.href = data.file;
+                downloadDocxBtn.style.display = 'inline-block';
+
+                // Optionally, show the HTML view link if HTML is generated
+                if (data.html_file) {
+                    viewHtmlBtn.href = data.html_file;
+                    viewHtmlBtn.style.display = 'inline-block';
+                }
+
+                // Show both options
+                fileOptionsDiv.style.display = 'block';
             }
         } catch (err) {
             console.error('Error:', err);
