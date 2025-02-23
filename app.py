@@ -208,7 +208,6 @@ def improve():
     except Exception as e:
         return jsonify({'improved_text': f"Error: {str(e)}"}), 500
 
-<<<<<<< HEAD
 # @app.route('/download')
 # def download_cv():
 #     return send_file('uploads/cv_result.pdf', as_attachment=True, download_name="Your_CV.pdf")
@@ -380,9 +379,7 @@ def download_html(filename):
 def download_cv(filename):
     return send_from_directory('uploads', filename)
 
-=======
 # -------------------- 🚀 RUN APP --------------------
->>>>>>> c7a609d (update 00h54)
 
 if __name__ == '__main__':
     app.run(debug=True)
