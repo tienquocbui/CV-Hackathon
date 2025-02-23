@@ -7,6 +7,8 @@ from reportlab.pdfgen import canvas
 from weasyprint import HTML
 from docx.shared import Pt, RGBColor
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -96,6 +98,25 @@ def generate_cv_pdf(data):
     c.save()
     return output_path
 
+def add_horizontal_line(doc):
+    """Adds a horizontal line to the document."""
+    # Create a paragraph with no text
+    paragraph = doc.add_paragraph()
+    run = paragraph.add_run()
+    run.add_break()
+    
+    # Create an XML element for a horizontal line
+    line = OxmlElement('w:pBdr')
+    p = paragraph._element
+    p.append(line)
+
+    # Set properties for the line
+    line.set(qn('w:top'), 'single')  # Single line style
+    line.set(qn('w:space'), '0')  # No space around the line
+    line.set(qn('w:color'), '000000')  # Black color
+
+    # doc.add_paragraph()  
+
 def generate_docx(data, output_filename):
     """Generate a DOCX CV."""
     doc = Document()
@@ -119,7 +140,7 @@ def generate_enhanced_docx(data, output_filename):
     run.font.bold = True
     run.font.color.rgb = RGBColor(0, 102, 204)  # Blue color
     title.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # Centered title
-    doc.add_paragraph()  # Add a blank line
+    # doc.add_paragraph()  # Add a blank line
 
     # Iterate through the sections and format them nicely
     for section, content in data.items():
@@ -133,7 +154,7 @@ def generate_enhanced_docx(data, output_filename):
         heading_run.bold = True
         heading_run.font.color.rgb = RGBColor(0, 51, 102)  # Dark blue for headings
 
-        doc.add_paragraph()  # Add space after heading
+        # doc.add_paragraph()  # Add space after heading
         
         # Handle content based on its type
         if isinstance(content, list):
@@ -151,15 +172,14 @@ def generate_enhanced_docx(data, output_filename):
             row = table.add_row().cells
             for i, value in enumerate(content.values()):
                 row[i].text = value  # Set the values
-            doc.add_paragraph()  # Add space after table
+            # doc.add_paragraph()  # Add space after table
 
         elif isinstance(content, str):
             # If content is a string (text), add it as a normal paragraph
             paragraph = doc.add_paragraph(content)
             paragraph.style.font.size = Pt(12)
         
-        doc.add_paragraph()  # Add space between sections
-
+        add_horizontal_line(doc)
     # Save the document
     doc.save(output_filename)
     print(f"Document saved as {output_filename}")

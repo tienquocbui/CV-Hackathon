@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
         utterance.lang = 'en-US';  // You can change the language if needed (e.g., 'en-GB' for British English)
         window.speechSynthesis.speak(utterance);
     }
-    readAloud("What is your full name?");
+    // readAloud("What is your full name?");
 
     // 👉 Load câu hỏi tiếp theo
     function fetchNextQuestion() {
