@@ -17,36 +17,25 @@
             <a href="/pricing">Pricing</a>
             <a href="/contact">Contact</a>
         </nav>
-
         <div class="navbar-icons">
             <a href="#accessibility">Accessibility</a>
         </div>
-        
     </header>
 
     <section class="demo-content">
-        <div class="demo-text-block">
+        <div class="demo-left">
             <h1 class="demo-title">Demo Recording</h1>
-            <!-- <p class="demo-description">Click the button to record. We'll refine your speech into a professional CV entry.</p> -->
-            <p id="questionText" class="demo-description">{{ question_text }}</p> <!-- Dynamic text here -->
+            <p id="questionText" class="demo-description">{{ question_text }}</p>
+            <div class="buttons">
+                <button id="recordBtn" class="btn record-btn">Start Recording</button>
+                <button id="retryBtn" class="btn retry-btn" style="display:none;">Record Again</button>
+                <button id="nextBtn" class="btn next-btn" style="display:none;">Next Question</button>
+            </div>
+            <div id="result" class="transcript-box">Your transcript will appear here...</div>
         </div>
 
-        <div class="buttons">
-            <button id="recordBtn" class="btn record-btn">Start Recording</button>
-        </div>
-
-        <div id="result" class="transcript-box">Refined transcript will appear here...</div>
-        <!-- <div class="buttons" style="display:none;" id="actionButtons">
-            <button id="improveBtn" class="btn improve-btn">Improve with AI</button>
-            <a id="downloadBtn" class="btn download-btn" style="display:none;" href="#">Download CV (PDF)</a>
-        </div> -->
-        <p></p>
-        <!-- <div class="buttons" style="display:none;" id="docxActions">
-            <button id="generateDocxBtn" class="btn">Generate DOCX</button>
-            <a id="downloadDocxBtn" class="btn" style="display:none;" href="#">Download CV (DOCX)</a>
-        </div> -->
-        <div class="buttons">
-            <button id="generateDocxBtn" class="btn">Generate DOCX</button>
+        <div class="demo-right">
+            <img src="/static/assets/demo-illustration.png" alt="Illustration" class="demo-image">
         </div>
 
         <div class="buttons" style="display:none;" id="fileOptions">
@@ -179,10 +168,14 @@
         });
 
     </script>
+    <div class="buttons">
+        <button id="generateDocxBtn" class="btn generate-btn">Generate DOCX</button>
+    </div>
+
+    <script src="/static/script.js"></script>
 
     <footer class="footer">
         <p>&copy; 2025 Speakly. All Rights Reserved.</p>
     </footer>
-
 </body>
 </html>

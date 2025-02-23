@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Speakly - Home</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
+
 <body>
     <header class="navbar">
         <div class="navbar-logo">
@@ -41,103 +43,81 @@
 
             <div class="description-below-btn">
                 <p>
-                  Speakly empowers you to effortlessly transform your spoken words into a <span class="highlight">polished</span>, 
-                  <span class="highlight">professional CV</span>. With <span class="highlight">cutting-edge AI technology</span>, 
-                  we ensure your experience is captured with <span class="highlight">clarity</span>, 
-                  <span class="highlight">precision</span>, and <span class="highlight">impact</span> - ready to impress employers worldwide.
+                    Speakly empowers you to effortlessly transform your spoken words into a <span
+                        class="highlight">polished</span>,
+                    <span class="highlight">professional CV</span>. With <span class="highlight">cutting-edge AI
+                        technology</span>,
+                    we ensure your experience is captured with <span class="highlight">clarity</span>,
+                    <span class="highlight">precision</span>, and <span class="highlight">impact</span> - ready to
+                    impress employers worldwide.
                 </p>
             </div>
-              
+
         </div>
     </section>
 
-        <!-- Why Speakly -->
-        <section class="why-speakly">
-            <h2 class="section-title fade-on-scroll">Why Speakly?</h2>
-            <div class="carousel">
-              <div class="slides">
-                <!-- Slide 1 -->
-                <div class="slide fade-on-scroll">
-                  <div class="why-text">
-                    <p>
-                      Speakly provides a <span class="highlight">seamless solution</span> to convert your spoken words into a 
-                      <span class="highlight">professional CV</span>. With <span class="highlight">advanced AI technology</span>, 
-                      you can <span class="highlight">effortlessly</span> present your skills with clarity and impact.
-                    </p>
-                    <a href="/demo" class="btn fade-btn">Try Speakly Now</a>
-                  </div>
-                  <div class="why-image">
-                    <img src="/static/assets/why-speakly-1.png" alt="Speakly Showcase 1">
-                  </div>
-                </div>
-          
-                <!-- Slide 2 -->
-                <div class="slide fade-on-scroll">
-                  <div class="why-text">
-                    <p>
-                      Achieve <span class="highlight">professional-grade results</span> in minutes. Speakly ensures your CV stands out with 
-                      <span class="highlight">clarity</span> and <span class="highlight">impact</span>.
-                    </p>
-                    <a href="/demo" class="btn fade-btn">Create My CV</a>
-                  </div>
-                  <div class="why-image">
-                    <img src="/static/assets/why-speakly-2.png" alt="Speakly Showcase 2">
-                  </div>
-                </div>
-          
-                <!-- Slide 3 -->
-                <div class="slide fade-on-scroll">
-                  <div class="why-text">
-                    <p>
-                      Experience the <span class="highlight">future of CV creation</span> with Speakly’s <span class="highlight">AI-driven</span> technology.
-                    </p>
-                    <a href="/demo" class="btn fade-btn">Get Started</a>
-                  </div>
-                  <div class="why-image">
-                    <img src="/static/assets/why-speakly-3.png" alt="Speakly Showcase 3">
-                  </div>
-                </div>
+    <section class="why-speakly">
+        <h2 class="section-title">Why Speakly</h2>
+        <div class="scroll-container">
+          <div class="horizontal-scroll">
+            <div class="why-block">
+              <div class="why-text">
+                <p><span class="highlight">Fast</span> and reliable voice-to-text conversion.</p>
               </div>
-          
-              <!-- Dots -->
-              <div class="dots">
-                <span class="dot active" onclick="moveSlide(0)"></span>
-                <span class="dot" onclick="moveSlide(1)"></span>
-                <span class="dot" onclick="moveSlide(2)"></span>
+              <div class="why-image">
+                <img src="/static/assets/kelvin.jpg" alt="Feature 1">
               </div>
             </div>
-          </section>
-          
-          
-  
+      
+            <div class="why-block">
+              <div class="why-text">
+                <p><span class="highlight">Multi-language</span> support for global users.</p>
+              </div>
+              <div class="why-image">
+                <img src="/static/assets/kelvin.jpg" alt="Feature 2">
+              </div>
+            </div>
+      
+            <div class="why-block">
+              <div class="why-text">
+                <p><span class="highlight">Professional</span> CV generation with AI.</p>
+              </div>
+              <div class="why-image">
+                <img src="/static/assets/kelvin.jpg" alt="Feature 3">
+              </div>
+            </div>
+          </div>
+        </div>
+    </section>      
+      
     <!-- How it Works Section -->
     <section class="how-it-works">
         <h2>How It Works</h2>
         <div class="steps">
-        <div class="step">
-            <img src="/static/assets/record-icon.png" alt="Record">
-            <h3>1. Record</h3>
-            <p>Speak about your experience and skills.</p>
-        </div>
-        <div class="step">
-            <img src="/static/assets/ai-icon.png" alt="Refine">
-            <h3>2. Refine with AI</h3>
-            <p>Our AI transforms your speech into a polished CV.</p>
-        </div>
-        <div class="step">
-            <img src="/static/assets/download-icon.png" alt="Download">
-            <h3>3. Download</h3>
-            <p>Get your professional CV instantly.</p>
-        </div>
+            <div class="step">
+                <img src="/static/assets/record-icon.png" alt="Record">
+                <h3>1. Record</h3>
+                <p>Speak about your experience and skills.</p>
+            </div>
+            <div class="step">
+                <img src="/static/assets/kelvin.jpg" alt="Refine">
+                <h3>2. Refine with AI</h3>
+                <p>Our AI transforms your speech into a polished CV.</p>
+            </div>
+            <div class="step">
+                <img src="/static/assets/kelvin.jpg" alt="Download">
+                <h3>3. Download</h3>
+                <p>Get your professional CV instantly.</p>
+            </div>
         </div>
     </section>
-    
+
     <!-- Call to Action -->
     <section class="cta">
         <h2>Ready to create your CV effortlessly?</h2>
         <a href="/demo" class="btn fade-btn">Try Speakly Now</a>
     </section>
-  
+
 
     <script>
         const video = document.getElementById('backgroundVideo');
@@ -150,37 +130,31 @@
 
     <script>
         let currentSlide = 0;
-        
+
         function moveSlide(slideIndex) {
-        const slides = document.querySelector(".slides");
-        const dots = document.querySelectorAll(".dot");
-        currentSlide = slideIndex;
-        slides.style.transform = `translateX(-${slideIndex * 100}%)`;
-        
-        dots.forEach(dot => dot.classList.remove("active"));
-        dots[slideIndex].classList.add("active");
+            const slides = document.querySelector(".slides");
+            const dots = document.querySelectorAll(".dot");
+            currentSlide = slideIndex;
+            slides.style.transform = `translateX(-${slideIndex * 100}%)`;
+
+            dots.forEach(dot => dot.classList.remove("active"));
+            dots[slideIndex].classList.add("active");
         }
-        
-        // Tự động chuyển slide mỗi 5s
-        setInterval(() => {
-        currentSlide = (currentSlide + 1) % 3;
-        moveSlide(currentSlide);
-        }, 5000);
-        
-        // Hiệu ứng cuộn
+
         document.addEventListener("scroll", () => {
-        document.querySelectorAll(".fade-on-scroll").forEach(element => {
-            const rect = element.getBoundingClientRect();
-            if (rect.top <= window.innerHeight - 100) {
-            element.classList.add("visible");
-            }
-        });
+            document.querySelectorAll(".fade-on-scroll").forEach(element => {
+                const rect = element.getBoundingClientRect();
+                if (rect.top <= window.innerHeight - 100) {
+                    element.classList.add("visible");
+                }
+            });
         });
     </script>
-    
+
     <footer class="footer">
         <p>&copy; 2025 Speakly. All Rights Reserved.</p>
     </footer>
-
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
+
 </html>
